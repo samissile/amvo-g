@@ -1,0 +1,57 @@
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+.Python
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+transcriber.log
+
+# Database
+*.sqlite
+*.sqlite3
+tasks.db
+app/db/tasks.db
+
+# Temp files
+/tmp/
+/temp/
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Results (but keep folder structure)
+app/results/*
+!app/results/.gitkeep
+app/db/*
+!app/db/.gitkeep
+
+# Uploads
+/tmp/audio_uploads/*
+/tmp/segments/*
+/tmp/yt_downloads/*
+
+Dockerfile_backup
+transcriber.py.bak
