@@ -55,6 +55,8 @@ async def download_audio_from_url(url: str, task_id: int) -> Tuple[str, str, int
     """
     output_template = os.path.join(YT_DOWNLOAD_DIR, f"yt_{task_id}_%(title)s.%(ext)s")
     
+    proxy_url = os.getenv("PROXY_URL")
+    
     ydl_opts = {
         'format': 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best',
         'postprocessors': [{
@@ -85,7 +87,12 @@ async def download_audio_from_url(url: str, task_id: int) -> Tuple[str, str, int
         'no_check_certificate': True,
         # ✅ REMOVED: 'allow_unplayable_formats': True,
     }
-    
+
+    # ✅ Add Proxy if it exists
+    if proxy_url:
+        ydl_opts['proxy'] = proxy_url
+        logger.info(f"🛡️ Using Proxy: {proxy_url[:15]}...***")
+        
     try:
         logger.info(f"📥 Downloading audio from: {url}")
         
