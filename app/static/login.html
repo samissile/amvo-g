@@ -1,0 +1,288 @@
+<!-- app/static/login.html -->
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>登入 - 安利演講 AI</title>
+  <style>
+    :root {
+      --primary-green: #2d8659;
+      --light-green: #4caf50;
+      --dark-green: #1b5e3f;
+      --accent-green: #81c784;
+      --bg-light: #f4f7fa;
+      --bg-white: #ffffff;
+      --text-dark: #333333;
+      --text-light: #666666;
+      --border-color: #e0e0e0;
+    }
+
+    html.dark-mode {
+      --primary-green: #4caf50;
+      --light-green: #66bb6a;
+      --dark-green: #2d8659;
+      --accent-green: #81c784;
+      --bg-light: #1e1e1e;
+      --bg-white: #2d2d2d;
+      --text-dark: #e0e0e0;
+      --text-light: #b0b0b0;
+      --border-color: #444444;
+    }
+
+    * { transition: background-color 0.3s, color 0.3s; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-light);
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: var(--bg-white);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .header {
+      position: relative;
+      margin-bottom: 30px;
+      padding-top: 10px;
+    }
+
+    h1 {
+      color: var(--primary-green);
+      text-align: center;
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .dark-mode-toggle {
+      background: var(--primary-green);
+      color: white;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      min-width: auto;
+      width: auto;
+      position: absolute;
+      right: 0;
+      top: 0;
+      transition: 0.3s;
+    }
+
+    .dark-mode-toggle:hover {
+      background: var(--dark-green);
+      transform: scale(1.1);
+    }
+
+    .form-group {
+      margin: 20px 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+      background: var(--bg-white);
+      color: var(--text-dark);
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: var(--primary-green);
+      box-shadow: 0 0 0 3px rgba(45, 134, 89, 0.1);
+    }
+
+    button {
+      background: var(--primary-green);
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      font-weight: 600;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: var(--dark-green);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(45, 134, 89, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: var(--text-light);
+      font-size: 13px;
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--text-light);
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .error-message {
+      background: #ffebee;
+      color: #c62828;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+      border-left: 4px solid #c62828;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .success-message {
+      background: #e8f5e9;
+      color: #2d8659;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+      border-left: 4px solid #2d8659;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+  </style>
+  <script>
+function toggleDarkMode() {
+  const html = document.documentElement;
+  html.classList.toggle('dark-mode');
+  localStorage.setItem('darkMode', html.classList.contains('dark-mode'));
+}
+
+function handleLogin(event) {
+  event.preventDefault();
+  const form = document.getElementById('login-form');
+  const formData = new FormData(form);
+  const apiKey = formData.get('api_key');
+  const errorMsg = document.getElementById('error-message');
+  const successMsg = document.getElementById('success-message');
+  
+  errorMsg.classList.remove('show');
+  successMsg.classList.remove('show');
+  
+  if (!apiKey || apiKey.trim() === '') {
+    errorMsg.innerText = '請輸入登入金鑰';
+    errorMsg.classList.add('show');
+    return false;
+  }
+
+  fetch('/auth', {
+    method: 'POST',
+    body: formData,
+    headers: { 'Accept': 'application/json' }
+  })
+  .then(response => {
+    if (response.redirected) {
+      successMsg.innerText = '登入成功，正在重定向...';
+      successMsg.classList.add('show');
+      setTimeout(() => {
+        window.location.href = response.url;
+      }, 500);
+      return;
+    }
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      return response.json().then(data => {
+        if (!response.ok) {
+          throw new Error(data.detail || '登入失敗');
+        }
+      });
+    } else {
+      throw new Error(`登入失敗 (HTTP ${response.status})`);
+    }
+  })
+  .catch(error => {
+    console.error('Login error:', error);
+    errorMsg.innerText = '登入失敗: ' + error.message;
+    errorMsg.classList.add('show');
+  });
+
+  return false;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Load dark mode preference
+  if (localStorage.getItem('darkMode') === 'true') {
+    document.documentElement.classList.add('dark-mode');
+  }
+});
+  </script>
+</head>
+<body>
+  <div class="container">
+  <div class="header">
+      <h1>🌿 安利演講 AI</h1>
+      <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="切換深色模式">🌙</button>
+    </div>
+
+    <div class="logo">🎤</div>
+    <p class="subtitle">轉錄 + AI 總結您的演講</p>
+
+    <div id="error-message" class="error-message"></div>
+    <div id="success-message" class="success-message"></div>
+
+    <form id="login-form" onsubmit="handleLogin(event);">
+      <div class="form-group">
+        <label for="api_key">登入金鑰 (API Key):</label>
+        <input 
+          type="text" 
+          name="api_key" 
+          id="api_key" 
+          placeholder="輸入你的登入金鑰" 
+          required 
+          autocomplete="off"
+        />
+      </div>
+      <button type="submit">登入</button>
+    </form>
+
+    <div class="footer">
+      <p>🔐 安全登入 | 金鑰已加密</p>
+    </div>
+  </div>
+</body>
+</html>

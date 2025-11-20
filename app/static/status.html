@@ -1,0 +1,967 @@
+<!-- static/status.html -->
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>安利演講 AI 轉錄與總結</title>
+  <style>
+    :root {
+      --primary-green: #2d8659;
+      --light-green: #4caf50;
+      --dark-green: #1b5e3f;
+      --accent-green: #81c784;
+      --bg-light: #f4f7fa;
+      --bg-white: #ffffff;
+      --text-dark: #333333;
+      --text-light: #666666;
+      --border-color: #e0e0e0;
+      --download-color: #ff9800;
+      --youtube-red: #ff0000;
+    }
+
+    html.dark-mode {
+      --primary-green: #4caf50;
+      --light-green: #66bb6a;
+      --dark-green: #2d8659;
+      --accent-green: #81c784;
+      --bg-light: #1e1e1e;
+      --bg-white: #2d2d2d;
+      --text-dark: #e0e0e0;
+      --text-light: #b0b0b0;
+      --border-color: #444444;
+      --download-color: #ffb74d;
+      --youtube-red: #ff6666;
+    }
+
+    * { transition: background-color 0.3s, color 0.3s; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-light);
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: var(--bg-white);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .header-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    h1 {
+      color: var(--primary-green);
+      text-align: center;
+      margin: 0;
+      flex: 1;
+    }
+
+    .dark-mode-toggle {
+      background: var(--primary-green);
+      color: white;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      min-width: auto;
+      width: auto;
+      transition: 0.3s;
+    }
+
+    .dark-mode-toggle:hover {
+      background: var(--dark-green);
+      transform: scale(1.1);
+    }
+
+    /* TAB STYLES */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid var(--border-color);
+      flex-wrap: wrap;
+    }
+
+    .tab-button {
+      background: transparent;
+      color: var(--text-light);
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: 0.3s;
+      font-weight: 600;
+    }
+
+    .tab-button:hover {
+      color: var(--primary-green);
+    }
+
+    .tab-button.active {
+      color: var(--primary-green);
+      border-bottom-color: var(--primary-green);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* FORM STYLES */
+    .form-group {
+      margin: 20px 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    input[type="text"],
+    input[type="file"],
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+      background: var(--bg-white);
+      color: var(--text-dark);
+      font-family: inherit;
+    }
+
+    input[type="text"]:focus,
+    input[type="file"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-green);
+      box-shadow: 0 0 0 3px rgba(45, 134, 89, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 15px 0;
+    }
+
+    .checkbox input[type="checkbox"] {
+      width: auto;
+      cursor: pointer;
+    }
+
+    .checkbox label {
+      margin: 0;
+      cursor: pointer;
+    }
+
+    button {
+      background: var(--primary-green);
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      width: 100%;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: var(--dark-green);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(45, 134, 89, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* TASK LIST STYLES */
+    .tasks-section {
+      margin-top: 40px;
+    }
+
+    .task-item {
+      background: var(--bg-light);
+      border-left: 4px solid var(--primary-green);
+      padding: 15px;
+      margin: 12px 0;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .task-item.youtube {
+      border-left-color: var(--youtube-red);
+    }
+
+    .task-info {
+      flex: 1;
+    }
+
+    .task-filename {
+      font-weight: 600;
+      color: var(--text-dark);
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .source-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--primary-green);
+      color: white;
+    }
+
+    .source-badge.youtube {
+      background: var(--youtube-red);
+    }
+
+    .task-metadata {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 4px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .task-timestamp,
+    .task-size,
+    .task-duration {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .task-status {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .task-actions a,
+    .task-actions button {
+      padding: 8px 12px;
+      font-size: 13px;
+      border-radius: 4px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-download {
+      background: var(--download-color);
+      color: white;
+    }
+
+    .btn-download:hover {
+      background: #f57c00;
+    }
+
+    .btn-download:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .hidden-tasks {
+      display: none;
+    }
+
+    .hidden-tasks.show {
+      display: block;
+    }
+
+    .toggle-btn {
+      background: var(--primary-green);
+      color: white;
+      padding: 10px 16px;
+      margin: 15px 0;
+      border-radius: 4px;
+      cursor: pointer;
+      border: none;
+      font-size: 14px;
+      width: auto;
+    }
+
+    .toggle-btn:hover {
+      background: var(--dark-green);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--border-color);
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent-green);
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: var(--text-light);
+      font-size: 14px;
+    }
+
+    .help-text {
+      background: rgba(45, 134, 89, 0.1);
+      border-left: 3px solid var(--primary-green);
+      padding: 12px;
+      border-radius: 4px;
+      margin: 15px 0;
+      font-size: 13px;
+      color: var(--text-dark);
+    }
+
+    .error-message {
+      background: #ffebee;
+      color: #c62828;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+      border-left: 4px solid #c62828;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .success-message {
+      background: #e8f5e9;
+      color: #2d8659;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+      border-left: 4px solid #2d8659;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-light);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+
+      .task-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .task-actions {
+        width: 100%;
+      }
+
+      .task-actions button,
+      .task-actions a {
+        flex: 1;
+      }
+
+      .tabs {
+        gap: 5px;
+      }
+
+      .tab-button {
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+    }
+  </style>
+  <script>
+function toggleDarkMode() {
+  const html = document.documentElement;
+  html.classList.toggle('dark-mode');
+  localStorage.setItem('darkMode', html.classList.contains('dark-mode'));
+}
+
+function switchTab(tabName) {
+  // Hide all tabs
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  
+  // Remove active class from all buttons
+  document.querySelectorAll('.tab-button').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Show selected tab
+  document.getElementById(`tab-${tabName}`).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function formatDuration(seconds) {
+  if (seconds === 0) return 'N/A';
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${secs}s`;
+  } else {
+    return `${secs}s`;
+  }
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMins < 1) return '剛剛';
+  if (diffMins < 60) return `${diffMins}分鐘前`;
+  if (diffHours < 24) return `${diffHours}小時前`;
+  if (diffDays < 7) return `${diffDays}天前`;
+  
+  return date.toLocaleString('zh-TW');
+}
+
+function pollStatus(taskId, apiKey) {
+  if (!taskId || taskId === 'undefined') return;
+  
+  fetch(`/status/${taskId}?api_key=${apiKey}`)
+    .then(response => {
+      if (!response.ok) throw new Error(`Status check failed: ${response.status}`);
+      return response.json();
+    })
+    .then(data => {
+      const progressEl = document.getElementById(`progress-${taskId}`);
+      const downloadBtn = document.getElementById(`download-${taskId}`);
+      const progressBar = document.getElementById(`bar-${taskId}`);
+      const sizeEl = document.querySelector(`#task-${taskId} .task-size`);
+      const durationEl = document.querySelector(`#task-${taskId} .task-duration`);
+      const filenameEl = document.querySelector(`#task-${taskId} .task-filename`);
+      
+      if (!progressEl) return; // Task element removed
+      
+      // ✅ NEW: Update filename if available (for both file uploads and YouTube)
+      if (filenameEl && data.filename) {
+        const sourceType = data.source_type || 'upload';
+        const icon = sourceType === 'youtube' ? '🎥' : '📄';
+        const badgeClass = sourceType === 'youtube' ? 'youtube' : '';
+        const badgeText = sourceType === 'youtube' ? 'YouTube' : '檔案';
+        filenameEl.innerHTML = `${icon} <span class="source-badge ${badgeClass}">${badgeText}</span> ${data.filename}`;
+      }
+      
+      // Update metadata
+      if (data.file_size > 0 && sizeEl) {
+        const sizeMB = (data.file_size / 1024 / 1024).toFixed(2);
+        sizeEl.innerHTML = `💾 ${sizeMB} MB`;
+      }
+      
+      if (data.audio_duration > 0 && durationEl) {
+        durationEl.innerHTML = `⏱️ ${formatDuration(data.audio_duration)}`;
+      }
+      
+      if (progressBar) {
+        progressBar.style.width = `${data.progress}%`;
+      }
+      
+      progressEl.innerText = `${data.progress}% - ${data.status}`;
+      
+      if (data.status === 'done') {
+        downloadBtn.style.display = 'inline-block';
+        downloadBtn.disabled = false;
+      } else if (data.status === 'error') {
+        progressEl.innerText += ` 錯誤: ${data.error}`;
+        downloadBtn.disabled = true;
+      } else {
+        setTimeout(() => pollStatus(taskId, apiKey), 2000);
+      }
+    })
+    .catch(error => {
+      console.error('Status poll failed:', error);
+      const progressEl = document.getElementById(`progress-${taskId}`);
+      if (progressEl) {
+        progressEl.innerText += ` 錯誤: ${error.message}`;
+      }
+    });
+}
+
+function startFileUpload() {
+  const form = document.getElementById('upload-form');
+  const fileInput = document.getElementById('file-input');
+  const errorMsg = document.getElementById('file-error-message');
+  const successMsg = document.getElementById('file-success-message');
+  
+  errorMsg.classList.remove('show');
+  successMsg.classList.remove('show');
+  
+  if (!fileInput.files || fileInput.files.length === 0) {
+    errorMsg.innerText = '請選擇至少一個檔案';
+    errorMsg.classList.add('show');
+    return false;
+  }
+  
+  const formData = new FormData();
+  for (let file of fileInput.files) {
+    formData.append('files', file);
+  }
+  formData.append('summarize', document.getElementById('file-summarize').checked ? 'true' : 'false');
+  formData.append('api_key', form.api_key.value);
+  
+  fetch('/transcribe', {
+    method: 'POST',
+    body: formData,
+    headers: { 'Accept': 'application/json' }
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(err => {
+        throw new Error(err.detail || `HTTP error! status: ${response.status}`);
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (!data.task_ids || data.task_ids.length === 0) throw new Error('No task_ids returned');
+    
+    successMsg.innerText = `✅ ${data.message}`;
+    successMsg.classList.add('show');
+    
+    // Add tasks to list
+    const tasksList = document.getElementById('tasks');
+    const apiKey = form.api_key.value;
+    
+    data.task_ids.forEach(taskId => {
+      const now = new Date().toLocaleString('zh-TW');
+      const li = document.createElement('li');
+      li.id = `task-${taskId}`;
+      li.className = 'task-item';
+      li.innerHTML = `
+        <div class="task-info">
+          <div class="task-filename">📄 <span class="source-badge">檔案</span> 上傳中...</div>
+          <div class="task-metadata">
+            <div class="task-timestamp">⏰ ${now}</div>
+            <div class="task-size">💾 計算中...</div>
+            <div class="task-duration">⏱️ 計算中...</div>
+          </div>
+          <div class="task-status">
+            進度: <span id="progress-${taskId}">0% - pending</span>
+            <div class="progress-bar">
+              <div class="progress-fill" id="bar-${taskId}"></div>
+            </div>
+          </div>
+        </div>
+        <div class="task-actions">
+          <button id="download-${taskId}" class="btn-download" style="display:none" 
+            onclick="window.location.href='/download/${taskId}?api_key=${apiKey}'">
+            下載
+          </button>
+        </div>
+      `;
+      
+      if (tasksList.firstChild) {
+        tasksList.insertBefore(li, tasksList.firstChild);
+      } else {
+        tasksList.appendChild(li);
+      }
+      
+      pollStatus(taskId, apiKey);
+    });
+    
+    // Clear form
+    fileInput.value = '';
+  })
+  .catch(error => {
+    console.error('Upload failed:', error);
+    errorMsg.innerText = '轉錄失敗: ' + error.message;
+    errorMsg.classList.add('show');
+  });
+  
+  return false;
+}
+
+function startYouTubeUpload() {
+  const form = document.getElementById('youtube-form');
+  const urlInput = document.getElementById('youtube-urls');
+  const errorMsg = document.getElementById('youtube-error-message');
+  const successMsg = document.getElementById('youtube-success-message');
+  
+  errorMsg.classList.remove('show');
+  successMsg.classList.remove('show');
+  
+  const urls = urlInput.value.trim();
+  if (!urls) {
+    errorMsg.innerText = '請輸入至少一個 YouTube 連結';
+    errorMsg.classList.add('show');
+    return false;
+  }
+  
+  const formData = new FormData();
+  formData.append('urls', urls);
+  formData.append('summarize', document.getElementById('youtube-summarize').checked ? 'true' : 'false');
+  formData.append('api_key', form.api_key.value);
+  
+  fetch('/transcribe-youtube', {
+    method: 'POST',
+    body: formData,
+    headers: { 'Accept': 'application/json' }
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(err => {
+        throw new Error(err.detail || `HTTP error! status: ${response.status}`);
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (!data.task_ids || data.task_ids.length === 0) throw new Error('No task_ids returned');
+    
+    successMsg.innerText = `✅ ${data.message}`;
+    successMsg.classList.add('show');
+    
+    // Add tasks to list
+    const tasksList = document.getElementById('tasks');
+    const apiKey = form.api_key.value;
+    const urlList = urls.split('\n').filter(u => u.trim());
+    
+    data.task_ids.forEach((taskId, index) => {
+      const now = new Date().toLocaleString('zh-TW');
+      const url = urlList[index] || 'YouTube';
+      const li = document.createElement('li');
+      li.id = `task-${taskId}`;
+      li.className = 'task-item youtube';
+      li.innerHTML = `
+        <div class="task-info">
+          <div class="task-filename">🎥 <span class="source-badge youtube">YouTube</span> ${url.substring(0, 50)}...</div>
+          <div class="task-metadata">
+            <div class="task-timestamp">⏰ ${now}</div>
+            <div class="task-size">💾 下載中...</div>
+            <div class="task-duration">⏱️ 計算中...</div>
+          </div>
+          <div class="task-status">
+            進度: <span id="progress-${taskId}">0% - downloading</span>
+            <div class="progress-bar">
+              <div class="progress-fill" id="bar-${taskId}"></div>
+            </div>
+          </div>
+        </div>
+        <div class="task-actions">
+          <button id="download-${taskId}" class="btn-download" style="display:none" 
+            onclick="window.location.href='/download/${taskId}?api_key=${apiKey}'">
+            下載
+          </button>
+        </div>
+      `;
+      
+      if (tasksList.firstChild) {
+        tasksList.insertBefore(li, tasksList.firstChild);
+      } else {
+        tasksList.appendChild(li);
+      }
+      
+      pollStatus(taskId, apiKey);
+    });
+    
+    // Clear form
+    urlInput.value = '';
+  })
+  .catch(error => {
+    console.error('YouTube upload failed:', error);
+    errorMsg.innerText = '轉錄失敗: ' + error.message;
+    errorMsg.classList.add('show');
+  });
+  
+  return false;
+}
+
+function toggleHidden() {
+  const hidden = document.getElementById('hidden-tasks');
+  const btn = document.getElementById('toggle-btn');
+  hidden.classList.toggle('show');
+  btn.innerText = hidden.classList.contains('show') ? '隱藏舊紀錄' : '顯示更多 (10+)';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Load dark mode preference
+  if (localStorage.getItem('darkMode') === 'true') {
+    document.documentElement.classList.add('dark-mode');
+  }
+  
+  // Set first tab as active
+  const firstTab = document.querySelector('.tab-button');
+  if (firstTab) {
+    firstTab.classList.add('active');
+    const tabName = firstTab.getAttribute('onclick').match(/switchTab\('(\w+)'\)/)[1];
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+  }
+  
+  // Re-poll any active tasks
+  const tasks = document.querySelectorAll('[id^="task-"]');
+  const apiKey = document.querySelector('input[name="api_key"]').value;
+  
+  tasks.forEach(task => {
+    const taskId = task.id.replace('task-', '');
+    const status = task.querySelector(`#progress-${taskId}`).innerText;
+    if (!status.includes('done') && !status.includes('error')) {
+      pollStatus(taskId, apiKey);
+    }
+  });
+});
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="header-controls">
+      <h1>🌿 安利演講 AI 轉錄 + 總結</h1>
+      <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="切換深色模式">🌙</button>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-button" onclick="switchTab('upload')">📄 上傳檔案</button>
+      <button class="tab-button" onclick="switchTab('youtube')">🎥 YouTube 連結</button>
+      <button class="tab-button" onclick="switchTab('tasks')">📋 任務列表</button>
+    </div>
+
+    <!-- TAB 1: FILE UPLOAD -->
+    <div id="tab-upload" class="tab-content active">
+      <h2>📄 上傳音檔</h2>
+      
+      <div id="file-error-message" class="error-message"></div>
+      <div id="file-success-message" class="success-message"></div>
+
+      <form id="upload-form" onsubmit="return startFileUpload();">
+        <input type="hidden" name="api_key" value="{{ api_key }}" />
+        
+        <div class="form-group">
+          <label for="file-input">選擇音檔 (MP3 / M4A / WAV):</label>
+          <input type="file" name="files" id="file-input" accept=".mp3,.m4a,.wav" multiple required />
+          <div class="help-text">
+            💡 支援多檔案上傳 | 單檔最大 500MB | 支援格式: MP3, M4A, WAV
+          </div>
+        </div>
+
+        <div class="checkbox">
+          <input type="checkbox" name="summarize" id="file-summarize" checked />
+          <label for="file-summarize">生成 AI 總結與講者分析</label>
+        </div>
+
+        <button type="submit">🚀 開始轉錄</button>
+      </form>
+    </div>
+
+    <!-- TAB 2: YOUTUBE UPLOAD -->
+    <div id="tab-youtube" class="tab-content">
+      <h2>🎥 YouTube / 影片連結</h2>
+      
+      <div id="youtube-error-message" class="error-message"></div>
+      <div id="youtube-success-message" class="success-message"></div>
+
+      <form id="youtube-form" onsubmit="return startYouTubeUpload();">
+        <input type="hidden" name="api_key" value="{{ api_key }}" />
+        
+        <div class="form-group">
+          <label for="youtube-urls">輸入影片連結 (每行一個):</label>
+          <textarea name="urls" id="youtube-urls" placeholder="https://www.youtube.com/watch?v=...&#10;https://youtu.be/...&#10;https://vimeo.com/..." required></textarea>
+          <div class="help-text">
+            💡 支援 YouTube、Vimeo 等多個影片平台 | 每行輸入一個連結 | 自動下載為 128kbps 單聲道 MP3
+          </div>
+        </div>
+
+        <div class="checkbox">
+          <input type="checkbox" name="summarize" id="youtube-summarize" checked />
+          <label for="youtube-summarize">生成 AI 總結與講者分析</label>
+        </div>
+
+        <button type="submit">🚀 開始轉錄</button>
+      </form>
+    </div>
+
+    <!-- TAB 3: TASK LIST -->
+    <div id="tab-tasks" class="tab-content">
+      <h2>📋 任務列表</h2>
+      
+      <div class="tasks-section">
+        <ul id="tasks" style="list-style: none; padding: 0;">
+          {% if tasks %}
+            {% for task in tasks[:10] %}
+              <li id="task-{{ task.id }}" class="task-item {% if task.source_type == 'youtube' %}youtube{% endif %}">
+                <div class="task-info">
+                  <div class="task-filename">
+                    {% if task.source_type == 'youtube' %}
+                      🎥 <span class="source-badge youtube">YouTube</span>
+                    {% else %}
+                      📄 <span class="source-badge">檔案</span>
+                    {% endif %}
+                    {{ task.filename }}
+                  </div>
+                  <div class="task-metadata">
+                    <div class="task-timestamp">⏰ {{ task.created_at }}</div>
+                    <div class="task-size">💾 {{ (task.file_size / 1024 / 1024)|round(2) }} MB</div>
+                    <div class="task-duration">⏱️ 
+                      {% if task.audio_duration > 0 %}
+                        {% set hours = task.audio_duration // 3600 %}
+                        {% set minutes = (task.audio_duration % 3600) // 60 %}
+                        {% set secs = task.audio_duration % 60 %}
+                        {% if hours > 0 %}{{ hours }}h {{ minutes }}m{% else %}{{ minutes }}m {{ secs }}s{% endif %}
+                      {% else %}
+                        計算中
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="task-status">
+                    進度: <span id="progress-{{ task.id }}">{{ task.progress }}% - {{ task.status }}{% if task.error %} 錯誤: {{ task.error }}{% endif %}</span>
+                    <div class="progress-bar">
+                      <div class="progress-fill" id="bar-{{ task.id }}" style="width: {{ task.progress }}%"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="task-actions">
+                  {% if task.status == 'done' %}
+                    <a href="/download/{{ task.id }}?api_key={{ api_key }}" class="btn-download">下載</a>
+                  {% else %}
+                    <button class="btn-download" disabled>下載</button>
+                  {% endif %}
+                </div>
+              </li>
+              <script>
+                {% if task.status != 'done' and task.status != 'error' %}
+                  pollStatus({{ task.id }}, '{{ api_key }}');
+                {% endif %}
+              </script>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <p>還沒有任務，請上傳檔案或輸入 YouTube 連結</p>
+            </div>
+          {% endif %}
+        </ul>
+        
+        <!-- Hidden older tasks -->
+        {% if tasks|length > 10 %}
+          <button class="toggle-btn" id="toggle-btn" onclick="toggleHidden()">顯示更多 ({{ tasks|length - 10 }})</button>
+          <ul id="hidden-tasks" class="hidden-tasks" style="list-style: none; padding: 0;">
+            {% for task in tasks[10:] %}
+              <li id="task-{{ task.id }}" class="task-item {% if task.source_type == 'youtube' %}youtube{% endif %}">
+                <div class="task-info">
+                  <div class="task-filename">
+                    {% if task.source_type == 'youtube' %}
+                      🎥 <span class="source-badge youtube">YouTube</span>
+                    {% else %}
+                      📄 <span class="source-badge">檔案</span>
+                    {% endif %}
+                    {{ task.filename }}
+                  </div>
+                  <div class="task-metadata">
+                    <div class="task-timestamp">⏰ {{ task.created_at }}</div>
+                    <div class="task-size">💾 {{ (task.file_size / 1024 / 1024)|round(2) }} MB</div>
+                    <div class="task-duration">⏱️ 
+                      {% if task.audio_duration > 0 %}
+                        {% set hours = task.audio_duration // 3600 %}
+                        {% set minutes = (task.audio_duration % 3600) // 60 %}
+                        {% set secs = task.audio_duration % 60 %}
+                        {% if hours > 0 %}{{ hours }}h {{ minutes }}m{% else %}{{ minutes }}m {{ secs }}s{% endif %}
+                      {% else %}
+                        N/A
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="task-status">
+                    進度: <span id="progress-{{ task.id }}">{{ task.progress }}% - {{ task.status }}</span>
+                  </div>
+                </div>
+                <div class="task-actions">
+                  {% if task.status == 'done' %}
+                    <a href="/download/{{ task.id }}?api_key={{ api_key }}" class="btn-download">下載</a>
+                  {% else %}
+                    <button class="btn-download" disabled>下載</button>
+                  {% endif %}
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>🔐 金鑰保護 | 僅限授權用戶 | 結果保留 10 天</p>
+    </div>
+  </div>
+</body>
+</html>
