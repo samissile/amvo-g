@@ -4,6 +4,7 @@ import yt_dlp
 import tempfile
 import logging
 import asyncio
+import base64
 from typing import Tuple
 
 logger = logging.getLogger(__name__)
@@ -53,13 +54,38 @@ async def download_audio_from_url(url: str, task_id: int) -> Tuple[str, str, int
     Mono 96kbps MP3 format (Optimized for Speech AI)
     Returns: (file_path, title, duration_seconds)
     """
+
+    cookie_path = None
+    temp_cookie_file = None
+    
+    # 1. Check for Environment Variable (Base64) - PRIORITY
+    b64_cookies = os.getenv("YOUTUBE_COOKIES_B64")
+    if b64_cookies:
+        try:
+            # Create a temp file only for this download
+            temp_cookie_file = tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.txt')
+            decoded_cookies = base64.b64decode(b64_cookies).decode('utf-8')
+            temp_cookie_file.write(decoded_cookies)
+            temp_cookie_file.close()
+            cookie_path = temp_cookie_file.name
+            logger.info("🍪 Loaded cookies from Environment Variable")
+        except Exception as e:
+            logger.error(f"❌ Failed to decode cookie variable: {e}")
+
+    # 2. Fallback to local file (cookies.txt) if Env Var fails or doesn't exist
+    if not cookie_path:
+        local_cookie = os.path.join(os.getcwd(), 'cookies.txt')
+        if os.path.exists(local_cookie):
+            cookie_path = local_cookie
+            logger.info("🍪 Loaded cookies from local file")
+   
     output_template = os.path.join(YT_DOWNLOAD_DIR, f"yt_{task_id}_%(title)s.%(ext)s")
     
     proxy_url = os.getenv("PROXY_URL")
     cookie_path = os.path.join(os.getcwd(), 'cookies.txt')
     ydl_opts = {
         'format': 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best',
-        'cookiefile': cookie_path if os.path.exists(cookie_path) else None, # <--- ADD THIS LINE        
+        'cookiefile': cookie_path        
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
@@ -134,6 +160,14 @@ async def download_audio_from_url(url: str, task_id: int) -> Tuple[str, str, int
     except Exception as e:
         logger.error(f"❌ Download failed: {e}")
         raise ValueError(f"Failed to download from URL: {str(e)}")
+
+    finally:
+        # CLEANUP: Delete the temp cookie file to keep things clean
+        if temp_cookie_file and os.path.exists(temp_cookie_file.name):
+            try:
+                os.unlink(temp_cookie_file.name)
+            except:
+                pass
 
 def validate_video_url(url: str) -> bool:
     """Check if URL is supported by yt-dlp"""

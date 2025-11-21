@@ -1,0 +1,17 @@
+# .gcloudignore
+
+# Secrets
+.env
+.env.example
+.env.local
+cookies.txt
+
+# Git folder (Huge, don't upload this)
+.git
+.gitignore
+
+# Python junk
+__pycache__/
+*.pyc
+venv/
+env/
