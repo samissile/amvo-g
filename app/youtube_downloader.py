@@ -82,10 +82,10 @@ async def download_audio_from_url(url: str, task_id: int) -> Tuple[str, str, int
     output_template = os.path.join(YT_DOWNLOAD_DIR, f"yt_{task_id}_%(title)s.%(ext)s")
     
     proxy_url = os.getenv("PROXY_URL")
-    cookie_path = os.path.join(os.getcwd(), 'cookies.txt')
+
     ydl_opts = {
         'format': 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best',
-        'cookiefile': cookie_path        
+        'cookiefile': cookie_path,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
