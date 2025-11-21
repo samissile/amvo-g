@@ -84,7 +84,7 @@ async def download_audio_from_url(url: str, task_id: int) -> Tuple[str, str, int
     proxy_url = os.getenv("PROXY_URL")
 
     ydl_opts = {
-        'format': 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio',
+        'format': 'bestaudio/best[height<=480]/worst',
         'cookiefile': cookie_path,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
