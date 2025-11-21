@@ -131,7 +131,7 @@ async def transcribe_audio_file_streaming(
     initial_progress: int = 0
 ) -> str:
     """
-    Process audio from disk -> FFmpeg (96k Mono) -> Gemini 2.0 Flash
+    Process audio from disk -> FFmpeg (64k Mono) -> Gemini 2.0 Flash
     """
     try:
         duration_seconds = await get_audio_duration(file_path)
@@ -165,9 +165,9 @@ async def transcribe_audio_file_streaming(
                     '-ss', str(start_sec),
                     '-t', str(SEGMENT_DURATION),
                     '-i', file_path,
-                    '-ar', '44100',
+                    '-ar', '16000',
                     '-ac', '1',
-                    '-b:a', '96k',
+                    '-b:a', '64k',
                     '-acodec', 'libmp3lame',
                     '-vn',
                     segment_path

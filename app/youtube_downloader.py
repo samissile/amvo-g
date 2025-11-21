@@ -84,12 +84,12 @@ async def download_audio_from_url(url: str, task_id: int) -> Tuple[str, str, int
     proxy_url = os.getenv("PROXY_URL")
 
     ydl_opts = {
-        'format': 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best',
+        'format': 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio',
         'cookiefile': cookie_path,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
-            'preferredquality': '96',
+            'preferredquality': '64',
             'nopostoverwrites': False,
         }],
         'outtmpl': output_template,
@@ -97,9 +97,8 @@ async def download_audio_from_url(url: str, task_id: int) -> Tuple[str, str, int
         'no_warnings': False,
         'socket_timeout': 60,
         'postprocessor_args': [
-            '-ar', '44100',
+            '-ar', '16000',
             '-ac', '1',
-            '-b:a', '96k',
         ],
         'prefer_ffmpeg': True,
         'keepvideo': False,
