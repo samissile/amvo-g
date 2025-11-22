@@ -9,6 +9,7 @@ from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
+PERSISTENT_COOKIE_PATH = "/mnt/data/cookies.txt"  # <--- The magical path
 YT_DOWNLOAD_DIR = os.path.join(tempfile.gettempdir(), "yt_downloads")
 os.makedirs(YT_DOWNLOAD_DIR, exist_ok=True)
 
@@ -57,34 +58,36 @@ async def download_audio_from_url(url: str, task_id: int) -> Tuple[str, str, int
 
     cookie_path = None
     temp_cookie_file = None
-    
-    # 1. Check for Environment Variable (Base64) - PRIORITY
-    b64_cookies = os.getenv("YOUTUBE_COOKIES_B64")
-    if b64_cookies:
+
+    # ✅ 1. PRIORITY: Check for manually uploaded file in Persistent Storage
+    if os.path.exists(PERSISTENT_COOKIE_PATH):
+        cookie_path = PERSISTENT_COOKIE_PATH
+        logger.info(f"🍪 Found Persistent Cookies at: {cookie_path}")
+
+    # 2. Fallback: Check Environment Variable (Base64)
+    elif os.getenv("YOUTUBE_COOKIES_B64"):
         try:
-            # Create a temp file only for this download
+            b64_cookies = os.getenv("YOUTUBE_COOKIES_B64")
             temp_cookie_file = tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.txt')
             decoded_cookies = base64.b64decode(b64_cookies).decode('utf-8')
             temp_cookie_file.write(decoded_cookies)
             temp_cookie_file.close()
             cookie_path = temp_cookie_file.name
-            logger.info("🍪 Loaded cookies from Environment Variable")
+            logger.info("🍪 Using Cookies from Environment Variable")
         except Exception as e:
             logger.error(f"❌ Failed to decode cookie variable: {e}")
 
-    # 2. Fallback to local file (cookies.txt) if Env Var fails or doesn't exist
-    if not cookie_path:
-        local_cookie = os.path.join(os.getcwd(), 'cookies.txt')
-        if os.path.exists(local_cookie):
-            cookie_path = local_cookie
-            logger.info("🍪 Loaded cookies from local file")
+    # 3. Fallback: Local file in project folder
+    elif os.path.exists(os.path.join(os.getcwd(), 'cookies.txt')):
+         cookie_path = os.path.join(os.getcwd(), 'cookies.txt')
+         logger.info("🍪 Using Cookies from local file")
    
     output_template = os.path.join(YT_DOWNLOAD_DIR, f"yt_{task_id}_%(title)s.%(ext)s")
     
     proxy_url = os.getenv("PROXY_URL")
 
     ydl_opts = {
-        'format': 'bestaudio/best[height<=480]/worst',
+        'format': 'bestaudio/worst',
         'cookiefile': cookie_path,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
