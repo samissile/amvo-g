@@ -164,7 +164,7 @@ async def get_tasks_for_key(api_key: str) -> List[Task]:
         rows = await cursor.fetchall()
         return [Task(*row) for row in rows]
 
-async def cleanup_old_tasks(days_old: int = 10):
+async def cleanup_old_tasks(days_old: int = 5):
     """Delete tasks older than N days"""
     async with aiosqlite.connect(DB_PATH) as db:
         cursor = await db.execute(

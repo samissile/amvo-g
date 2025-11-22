@@ -65,9 +65,9 @@ def cleanup_temp_files():
                 logger.warning(f"Failed to delete {file}: {e}")
 
 async def cleanup_old_temp_files():
-    """Delete temp files older than 2 hours"""
+    """Delete temp files older than 1 hours"""
     now = datetime.now()
-    cutoff = now - timedelta(hours=2)
+    cutoff = now - timedelta(hours=1)
     
     for directory in [UPLOAD_DIR, SEGMENT_DIR, YT_DOWNLOAD_DIR]:
         pattern = os.path.join(directory, "*")
@@ -80,8 +80,8 @@ async def cleanup_old_temp_files():
             except Exception as e:
                 logger.warning(f"Cleanup failed: {e}")
 
-async def cleanup_old_result_files(days_old: int = 10):
-    """Delete result files older than 10 days"""
+async def cleanup_old_result_files(days_old: int = 5):
+    """Delete result files older than 5 days"""
     now = datetime.now()
     cutoff = now - timedelta(days=days_old)
     
@@ -462,7 +462,7 @@ async def health():
     return {
         "status": "healthy",
         "features": ["file_upload", "youtube_download", "batch_processing"],
-        "cleanup_days": 10,
+        "cleanup_days": 5,
         "max_file_size_mb": 500
     }
 
