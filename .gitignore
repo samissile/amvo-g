@@ -1,5 +1,6 @@
 # Environment & Secrets
 .env
+.env.example
 .env.local
 .env.*.local
 cookies.txt
@@ -43,11 +44,6 @@ app/db/tasks.db
 .DS_Store
 Thumbs.db
 
-# Results (but keep folder structure)
-app/results/*
-!app/results/.gitkeep
-app/db/*
-!app/db/.gitkeep
 
 # Uploads
 /tmp/audio_uploads/*
@@ -56,3 +52,5 @@ app/db/*
 
 Dockerfile_backup
 transcriber.py.bak
+
+.gcloudignore

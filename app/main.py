@@ -65,9 +65,9 @@ def cleanup_temp_files():
                 logger.warning(f"Failed to delete {file}: {e}")
 
 async def cleanup_old_temp_files():
-    """Delete temp files older than 2 hours"""
+    """Delete temp files older than 1 hours"""
     now = datetime.now()
-    cutoff = now - timedelta(hours=2)
+    cutoff = now - timedelta(hours=1)
     
     for directory in [UPLOAD_DIR, SEGMENT_DIR, YT_DOWNLOAD_DIR]:
         pattern = os.path.join(directory, "*")
@@ -80,8 +80,8 @@ async def cleanup_old_temp_files():
             except Exception as e:
                 logger.warning(f"Cleanup failed: {e}")
 
-async def cleanup_old_result_files(days_old: int = 10):
-    """Delete result files older than 10 days"""
+async def cleanup_old_result_files(days_old: int = 5):
+    """Delete result files older than 5 days"""
     now = datetime.now()
     cutoff = now - timedelta(days=days_old)
     
@@ -462,6 +462,86 @@ async def health():
     return {
         "status": "healthy",
         "features": ["file_upload", "youtube_download", "batch_processing"],
-        "cleanup_days": 10,
+        "cleanup_days": 5,
         "max_file_size_mb": 500
     }
+
+# ==========================================
+# 🍪 COOKIE MANAGEMENT (HOT SWAP)
+# ==========================================
+
+@app.get("/admin/cookies", response_class=HTMLResponse)
+async def cookies_page(request: Request):
+    """Simple page to upload new cookies.txt"""
+    html_content = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Update Cookies</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body { font-family: sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f0f2f5; margin:0;}
+            .box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 100%; }
+            button { background: #2d8659; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 15px; width: 100%; }
+            button:hover { background: #1b5e3f; }
+            input { margin-bottom: 15px; width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+            h1 { color: #333; margin-top: 0; }
+            p { color: #666; font-size: 14px; }
+        </style>
+    </head>
+    <body>
+        <div class="box">
+            <h1>🍪 Update Cookies</h1>
+            <p>Upload a fresh <code>cookies.txt</code> to fix YouTube download errors.</p>
+            <form action="/admin/cookies" method="post" enctype="multipart/form-data">
+                <input name="api_key" type="password" placeholder="Enter your API Key" required>
+                <input type="file" name="file" accept=".txt" required>
+                <button type="submit">Upload & Apply</button>
+            </form>
+        </div>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
+@app.post("/admin/cookies")
+async def upload_cookies(
+    file: UploadFile = File(...),
+    api_key: str = Form(...)
+):
+    # 1. Security Check
+    if not secrets.compare_digest(api_key, VALID_API_KEY):
+        raise HTTPException(status_code=401, detail="Invalid API Key")
+    
+    # 2. Save to Persistent Storage
+    # Note: 'mount_path=/mnt/data' MUST be set in Cloud Run
+    save_dir = "/mnt/data"
+    if not os.path.exists(save_dir):
+         # Fallback for testing without volume mount
+         save_dir = os.getcwd()
+         
+    file_path = os.path.join(save_dir, "cookies.txt")
+    
+    try:
+        content = await file.read()
+        
+        # Basic Validation: Check for Netscape format indicators
+        if b"FALSE" not in content and b"TRUE" not in content and b"google.com" not in content:
+             raise HTTPException(400, "Invalid format. Please use 'Get cookies.txt LOCALLY' extension.")
+
+        async with aiofiles.open(file_path, 'wb') as f:
+            await f.write(content)
+            
+        logger.info(f"✅ Cookies updated manually at {file_path}")
+        return HTMLResponse(content=f"""
+            <div style="font-family:sans-serif; text-align:center; padding:50px;">
+                <h1 style="color:green;">✅ Cookies Updated!</h1>
+                <p>New cookies saved to: {file_path}</p>
+                <p><b>The app will now use these cookies immediately.</b></p>
+                <a href="/" style="color:#2d8659; text-decoration:none; font-weight:bold;">Back to Home</a>
+            </div>
+        """)
+        
+    except Exception as e:
+        logger.error(f"Cookie upload failed: {e}")
+        raise HTTPException(500, f"Failed to save file: {e}")

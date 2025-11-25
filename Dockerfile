@@ -1,17 +1,17 @@
-FROM python:3.11-alpine
+# Use Debian-based slim image instead of Alpine (Better FFmpeg/Network support)
+FROM python:3.11-slim
 
-# Install system dependencies
-RUN apk add --no-cache \
+# Install system dependencies including aria2
+# ✅ FIXED: Combined into a single RUN command with correct cleanup
+RUN apt-get update && apt-get install -y \
     ffmpeg \
-    sqlite \
-    gcc \
-    musl-dev \
-    linux-headers \
-    && rm -rf /var/cache/apk/*
+    aria2 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install Python dependencies
+# Copy requirements and install
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
@@ -22,7 +22,7 @@ COPY . .
 # Create temp directories
 RUN mkdir -p /tmp/audio_uploads /tmp/segments /tmp/yt_downloads
 
-# Run with single worker and memory limits
+# Run with hypercorn (or uvicorn as recommended previously)
 CMD ["hypercorn", "app.main:app", \
      "--bind", "0.0.0.0:8080", \
      "--workers", "1", \

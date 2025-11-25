@@ -131,7 +131,7 @@ async def transcribe_audio_file_streaming(
     initial_progress: int = 0
 ) -> str:
     """
-    Process audio from disk -> FFmpeg (96k Mono) -> Gemini 2.0 Flash
+    Process audio from disk -> FFmpeg (64k Mono) -> Gemini 2.0 Flash
     """
     try:
         duration_seconds = await get_audio_duration(file_path)
@@ -165,9 +165,9 @@ async def transcribe_audio_file_streaming(
                     '-ss', str(start_sec),
                     '-t', str(SEGMENT_DURATION),
                     '-i', file_path,
-                    '-ar', '44100',
+                    '-ar', '16000',
                     '-ac', '1',
-                    '-b:a', '96k',
+                    '-b:a', '64k',
                     '-acodec', 'libmp3lame',
                     '-vn',
                     segment_path
@@ -281,8 +281,7 @@ async def summarize_with_grok(
         "   a. 講者是否為安利的領袖？(回答：是/否)\n"
         f"   b. 講者的名字 (若{filename}和演講稿未提及，則回答：未提及)\n"
         f"   c. 演講的主題 (若{filename}和演講稿未提及，則回答：未提及)\n"
-        "2. 根據上述分析，判斷講者是否為安利領袖。若是，則在總結中使用「安利領袖」稱呼講者；若否，則僅使用「講者」或講者姓名（若已知）。"
-        "請詳細歸納演講內容。\n\n"
+        "2. 請詳細歸納演講內容。\n\n"
         f"演講稿:\n{transcript}"
     )
     

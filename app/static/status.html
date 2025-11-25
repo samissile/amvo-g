@@ -5,7 +5,7 @@
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>安利演講 AI 轉錄與總結</title>
+  <title>AMVO AI</title>
   <style>
     :root {
       --primary-green: #2d8659;
@@ -547,7 +547,7 @@ function pollStatus(taskId, apiKey) {
         progressEl.innerText += ` 錯誤: ${data.error}`;
         downloadBtn.disabled = true;
       } else {
-        setTimeout(() => pollStatus(taskId, apiKey), 2000);
+        setTimeout(() => pollStatus(taskId, apiKey), 5000);
       }
     })
     .catch(error => {
@@ -786,7 +786,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <body>
   <div class="container">
     <div class="header-controls">
-      <h1>🌿 安利演講 AI 轉錄 + 總結</h1>
+      <h1>🌿 AMVO AI</h1>
       <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="切換深色模式">🌙</button>
     </div>
 
@@ -838,7 +838,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <label for="youtube-urls">輸入影片連結 (每行一個):</label>
           <textarea name="urls" id="youtube-urls" placeholder="https://www.youtube.com/watch?v=...&#10;https://youtu.be/...&#10;https://vimeo.com/..." required></textarea>
           <div class="help-text">
-            💡 支援 YouTube、Vimeo 等多個影片平台 | 每行輸入一個連結 | 自動下載為 128kbps 單聲道 MP3
+            💡 支援 YouTube、Vimeo 等多個影片平台 | 每行輸入一個連結 | 自動下載為 64kbps 單聲道 MP3
           </div>
         </div>
 
@@ -960,7 +960,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 
     <div class="footer">
-      <p>🔐 金鑰保護 | 僅限授權用戶 | 結果保留 10 天</p>
+      <p>🔐 金鑰保護 | 僅限授權用戶 | 結果保留 5 天</p>
     </div>
   </div>
 </body>
